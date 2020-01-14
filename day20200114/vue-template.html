@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>vue学习</title>
+</head>
+<body>
+<div id="app">
+    <div>
+        <p>{{name}}</p>
+        <p>{{age}}</p>
+        <p>{{gender}}</p>
+    </div>
+</div>
+<script>
+let root = document.querySelector('#app');
+let temNode = document.querySelector('#app').cloneNode(true);
+let regBrace = /\{\{(.+?)\}\}/
+let dataList = {
+    name: 'lisa',
+    age: '16',
+    gender: 'male'
+}    
+let generateNode = temNode.cloneNode(true)
+function compiler(template, data){
+    let childNodes = template.childNodes
+    for(let i=0; i<childNodes.length; i++){
+        let type = childNodes[i].nodeType
+        if(type === 3){
+            let value = childNodes[i].nodeValue.replace(regBrace,function(_, g){
+                return data[ g.trim() ]
+            })
+            childNodes[i].nodeValue = value
+        }else if(type === 1){
+            compiler(childNodes[i], data)
+        }
+    }    
+}
+
+compiler(generateNode, dataList)
+console.log(generateNode,root.parentElement)
+root.parentElement.replaceChild(generateNode, root)
+</script>  
+</body>
+</html>
