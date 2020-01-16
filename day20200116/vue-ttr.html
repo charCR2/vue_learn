@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <div>
+            <p>{{name}}</p>
+            <p>{{age}}</p>
+            <p>{{gender}}</p>
+        </div>
+    </div>
+<script>
+// 封装简单版vue
+function CRVue(options){
+    this._data = options.data;
+    this.$el = options.el
+    this._template = document.querySelector(options.el)
+    this._parentNode = this._template.parentNode
+    this.upData()
+}
+CRVue.prototype.compiler = function (template){
+    let regBrace = /\{\{(.+?)\}\}/
+    let childNodes = template.childNodes
+    let that = this
+    for(let i=0; i<childNodes.length; i++){
+        let type = childNodes[i].nodeType
+        if(type === 3){
+            let value = childNodes[i].nodeValue.replace(regBrace,function(_, g){
+                return that._data[ g.trim() ]
+            })
+            childNodes[i].nodeValue = value
+        }else if(type === 1){
+            this.compiler(childNodes[i], this._data)
+        }
+    }    
+}
+CRVue.prototype.upData = function(){
+    let generateNode = this._template.cloneNode(true)
+    this.compiler(generateNode)
+    this._parentNode.replaceChild(generateNode, document.querySelector(this.$el))
+}
+let vm = new CRVue({
+    el: '#app',
+    data: {
+        name: 'lisa',
+        age: '16',
+        gender: 'male'
+    }
+})
+
+</script>    
+</body>
+
+</html>
