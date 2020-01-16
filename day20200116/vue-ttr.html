@@ -19,17 +19,20 @@
 function CRVue(options){
     this._data = options.data;
     this.$el = options.el
-    this._template = document.querySelector(options.el)
-    this._parentNode = this._template.parentNode
+    this._template = document.querySelector(options.el) // 创建模板
+    this._parentNode = this._template.parentNode //创建父元素
     this.upData()
 }
+//模板编译
 CRVue.prototype.compiler = function (template){
+    // 正则表达式匹配{{}}
     let regBrace = /\{\{(.+?)\}\}/
     let childNodes = template.childNodes
     let that = this
     for(let i=0; i<childNodes.length; i++){
         let type = childNodes[i].nodeType
         if(type === 3){
+            //替换{{}}中的类容
             let value = childNodes[i].nodeValue.replace(regBrace,function(_, g){
                 return that._data[ g.trim() ]
             })
@@ -39,8 +42,11 @@ CRVue.prototype.compiler = function (template){
         }
     }    
 }
+// 模板更新
 CRVue.prototype.upData = function(){
+    // 临时模板
     let generateNode = this._template.cloneNode(true)
+    // 编译临时模板
     this.compiler(generateNode)
     this._parentNode.replaceChild(generateNode, document.querySelector(this.$el))
 }
