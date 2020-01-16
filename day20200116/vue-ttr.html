@@ -12,6 +12,7 @@
             <p>{{name}}</p>
             <p>{{age}}</p>
             <p>{{gender}}</p>
+            <p>{{person.height}}</p>
         </div>
     </div>
 <script>
@@ -34,7 +35,7 @@ CRVue.prototype.compiler = function (template){
         if(type === 3){
             //替换{{}}中的类容
             let value = childNodes[i].nodeValue.replace(regBrace,function(_, g){
-                return that._data[ g.trim() ]
+                return that.getValueByPath(g.trim(), that._data)
             })
             childNodes[i].nodeValue = value
         }else if(type === 1){
@@ -42,7 +43,7 @@ CRVue.prototype.compiler = function (template){
         }
     }    
 }
-// 模板更新4
+// 模板更新
 CRVue.prototype.upData = function(){
     // 临时模板
     let generateNode = this._template.cloneNode(true)
@@ -50,12 +51,25 @@ CRVue.prototype.upData = function(){
     this.compiler(generateNode)
     this._parentNode.replaceChild(generateNode, document.querySelector(this.$el))
 }
+//识别对象的属性
+CRVue.prototype.getValueByPath = function (path, obj) {
+    let _path = path.split('.')
+    let res = obj
+    let prop;
+    while(prop = _path.shift()){
+        res = res[prop]
+    }
+    return res
+}
 let vm = new CRVue({
     el: '#app',
     data: {
         name: 'lisa',
         age: '16',
-        gender: 'male'
+        gender: 'male',
+        person: {
+            height: 150
+        }
     }
 })
 
