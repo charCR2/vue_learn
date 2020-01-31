@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <div>
+            {{name}}
+        </div>
+        <div>
+            {{age}}
+        </div>
+    </div>
+<script>
+class Vnode {
+    constructor(value, tagName, tagType, data){
+        this.value = value
+        this.tagName = tagName
+        this.tagType = tagType
+        this.data = data
+        this.children = []
+    } 
+
+    appendChild(vnode){
+        this.children.push(vnode)
+    }
+}
+//模拟生成ast
+function getVNode(node){
+    let _type = node.nodeType
+    let vnode = null
+    if(_type === 1){
+        let _attrs = {};
+        let attrs = node.attributes
+
+        for ( let i = 0; i < attrs.length; i++ ) { // attrs[ i ] 属性节点 ( nodeType == 2 )
+          _attrs[ attrs[ i ].nodeName ] = attrs[ i ].nodeValue;
+        }
+
+        vnode = new Vnode(undefined, node.nodeName.toLowerCase(), _type, _attrs)
+
+        for(let j = 0;j < node.childNodes.length; j++){
+            vnode.appendChild(getVNode(node.childNodes[j]))
+        }
+       
+    }else if(_type === 3){
+
+        vnode = new Vnode(node.nodeValue, undefined, _type, undefined )
+    }
+
+    return vnode
+}
+
+function parseVNode(vnode){
+    
+    let _type = vnode.tagType
+    let node = null
+    if(_type === 1){
+        node = document.createElement(vnode.tagName)
+
+        for(let k in vnode.data){
+            node.setAttribute(k, vnode.data[k])
+        }
+        
+        for(let i = 0; i<vnode.children.length; i++){
+            node.appendChild(parseVNode(vnode.children[i]))
+        }
+
+    }else if(_type === 3){
+        node = document.createTextNode(vnode.value)
+    }
+
+    return node
+
+}
+
+function getValueByPath (data, path) {
+
+    let _path = path.split('.')
+    let _value = data
+    let prop;
+    while(prop = _path.shift()){
+        _value = _value[prop]
+    }
+
+    return _value
+}
+
+function combine(vnode, data){
+    let _type = vnode.tagType;
+      let _data = vnode.data;
+      let _value = vnode.value;
+      let _tag = vnode.tagName;
+      let _children = vnode.children;
+
+    let _vnode = null;
+
+    let rkuohao = /\{\{(.+?)\}\}/g;
+      if ( _type === 3 ) { // 文本节点 
+
+        // 对文本处理
+        _value = _value.replace( rkuohao, function ( _, g ) {
+          return getValueByPath( data, g.trim() );
+        } );
+
+        _vnode = new Vnode( _value, _tag, _type, _data )
+
+      } else if ( _type === 1 ) { // 元素节点
+        _vnode = new Vnode( _value, _tag, _type, _data);
+        _children.forEach( _subvnode => _vnode.appendChild( combine( _subvnode, data ) ) );
+      }
+
+      return _vnode;
+}
+
+function Vue(options){
+    this._data = options.data
+    this._el = options.el 
+    this._template = document.querySelector(this._el)
+    
+    this._parent = this._template.parentNode
+
+    this.mount()
+}
+
+Vue.prototype.createRenderFn = function(){
+   
+    let ast = getVNode(this._template)
+   
+    return function render(){
+        return combine(ast, this._data)
+    }
+}
+Vue.prototype.mount = function(){
+   
+    this.render = this.createRenderFn()
+
+    this.mountCompoent()
+}
+Vue.prototype.mountCompoent = function(){
+
+    let mount = function() {
+        
+        this.upData(this.render())
+    }
+
+    mount.call(this)
+}
+Vue.prototype.upData = function(vnode){
+    
+    let realDOM = parseVNode( vnode );
+
+    this._parent.replaceChild(realDOM, document.querySelector('#app'))
+}
+
+var vm = new Vue({
+    el: '#app',
+    data:{
+        name: 'joey',
+        age: '18'
+    }
+})
+</script>
+</body>
+</html>

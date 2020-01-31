@@ -25,9 +25,10 @@ let dataList = {
     gender: 'male'
 }    
 let generateNode = temNode.cloneNode(true)
+
 function compiler(template, data){
     let childNodes = template.childNodes
-    for(let i=0; i<childNodes.length; i++){
+    for(let i=0; i <childNodes.length; i++){
         let type = childNodes[i].nodeType
         if(type === 3){
             let value = childNodes[i].nodeValue.replace(regBrace,function(_, g){
