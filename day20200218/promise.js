@@ -201,7 +201,7 @@ class MyPromise {
 
 
 console.log(1)
-new Apromise( (resolve,reject) => {
+new MyPromise( (resolve,reject) => {
 
     console.log(2)
     setTimeout(()=>{
